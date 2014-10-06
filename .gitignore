@@ -1,2 +1,4 @@
 .idea
 bio-formats-service.iml
+target
+classes

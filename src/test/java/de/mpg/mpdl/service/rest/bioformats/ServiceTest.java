@@ -1,0 +1,157 @@
+package de.mpg.mpdl.service.rest.bioformats;
+
+import com.google.common.io.ByteStreams;
+import com.google.common.io.Files;
+import de.mpg.mpdl.service.rest.bioformats.ServiceConfiguration.Pathes;
+import org.glassfish.jersey.jsonp.JsonProcessingFeature;
+import org.glassfish.jersey.media.multipart.FormDataMultiPart;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
+import org.glassfish.jersey.media.multipart.file.FileDataBodyPart;
+import org.glassfish.jersey.test.JerseyTest;
+import org.glassfish.jersey.test.spi.TestContainerException;
+import org.glassfish.jersey.test.spi.TestContainerFactory;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.json.JsonObject;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.isEmptyOrNullString;
+import static org.hamcrest.Matchers.not;
+import static org.junit.Assert.*;
+
+
+public class ServiceTest extends JerseyTest
+{
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ServiceTest.class);
+    static FormDataMultiPart SWC_MULTIPART = null;
+
+
+    final static String FORMATS_XML_FILE = "formats.xml";
+    final static String BAD_INPUT_FORMAT_FILE = "bad-input-format-sample.swc";
+    final static String GOOD_INPUT_FORMAT_FILE = "m42_40min_red.fits";
+    final static String GOOD_OUTPUT_FILE = "m42_40min_red.png";
+    static String FORMATS_XML = null;
+
+    final static MediaType PNG_MEDIA_TYPE = new MediaType("image", "png");
+
+
+    @Override
+    protected Application configure() {
+        return new MyApplication();
+    }
+
+
+    @Override
+    protected TestContainerFactory getTestContainerFactory() throws TestContainerException {
+        return new MyTestContainerFactory();
+    }
+
+    @BeforeClass
+    public static void initilizeResources() {
+
+        try {
+            FORMATS_XML = RestUtils.getResourceAsString(FORMATS_XML_FILE);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    @Test
+    public void testViewFromFile() throws Exception {
+
+
+
+    }
+
+    @Test
+    public void testViewFromUrl() throws Exception {
+
+    }
+
+    @Test
+    public void testFormats() throws Exception {
+
+        Response response = target(Pathes.PATH_FORMATS)
+                .request(MediaType.TEXT_XML)
+                .get();
+
+        assertEquals(200, response.getStatus());
+        String responseXml = response.readEntity(String.class);
+        assertThat(responseXml, not(isEmptyOrNullString()));
+        assertEquals(responseXml, FORMATS_XML);
+    }
+
+    //@Test
+    public void testUnsupportedInputFileFormat() throws IOException, URISyntaxException {
+
+        FormDataMultiPart multipart = getFormDataMultiPart(BAD_INPUT_FORMAT_FILE);
+
+        Response response = target(Pathes.PATH_CONVERT)
+                .register(MultiPartFeature.class)
+                .register(JsonProcessingFeature.class)
+                .request(MediaType.MULTIPART_FORM_DATA_TYPE, MediaType.APPLICATION_JSON_TYPE)
+                .post(Entity.entity(multipart, multipart.getMediaType()));
+
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+        JsonObject responseJSON = response.readEntity(JsonObject.class);
+        assertNotNull(responseJSON);
+
+        JsonObject jsonObject = (JsonObject) responseJSON.get("error");
+
+        assertEquals(RestUtils.UNSUPPORTED_FILE_FORMAT_CUSTOM_CODE, jsonObject.getString("code"));
+
+    }
+
+    @Test
+    public void testSupportedInputFileFormat() throws IOException, URISyntaxException {
+
+        FormDataMultiPart multipart = getFormDataMultiPart(GOOD_INPUT_FORMAT_FILE);
+
+        Response response = target(Pathes.PATH_CONVERT)
+                .register(MultiPartFeature.class)
+                .register(JsonProcessingFeature.class)
+                .request(MediaType.MULTIPART_FORM_DATA_TYPE, MediaType.APPLICATION_JSON_TYPE)
+                .post(Entity.entity(multipart, multipart.getMediaType()));
+
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+        InputStream pngInputStream = response.readEntity(InputStream.class);
+
+        byte[] responseBytes = ByteStreams.toByteArray(pngInputStream);
+        pngInputStream.close();
+        byte[] testBytes = Files.toByteArray(
+                new File(
+                    RestUtils.getResourceAsURL(GOOD_OUTPUT_FILE).getFile()
+                )
+        );
+
+        assertArrayEquals("Wrong PNG file", responseBytes, testBytes);
+
+
+    }
+
+    private FormDataMultiPart getFormDataMultiPart(String fileName) throws URISyntaxException, IOException {
+        URI uri = RestUtils.getResourceAsURL(GOOD_INPUT_FORMAT_FILE).toURI();
+        FileDataBodyPart filePart = new FileDataBodyPart("file", new File(uri));
+        assertNotNull(filePart);
+        FormDataMultiPart multipart = new FormDataMultiPart();
+        multipart.bodyPart(filePart);
+        return multipart;
+    }
+
+
+}
