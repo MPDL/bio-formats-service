@@ -44,7 +44,7 @@ public class RestApi {
     @POST
 	@Path(Pathes.PATH_CONVERT)
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
-	@Produces({"image/png", MediaType.APPLICATION_JSON})
+	@Produces({"image/png", MediaType.TEXT_HTML})
 	public Response convertFile(@Context HttpServletRequest request
 	) throws Exception {
         return RestUtils.convertFile(request);
