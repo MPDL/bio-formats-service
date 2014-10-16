@@ -47,7 +47,8 @@ public class RestApi {
 	@Produces({"image/png", MediaType.TEXT_HTML})
 	public Response convertFile(@Context HttpServletRequest request
 	) throws Exception {
-        return RestUtils.convertFile(request);
+//        return RestUtils.convertFile(request);
+    	return RestUtils.generateViewFromFiles(request);
 	}
 
 	/*@POST

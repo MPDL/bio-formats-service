@@ -2,7 +2,9 @@ package de.mpg.mpdl.service.rest.bioformats;
 
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
+
 import de.mpg.mpdl.service.rest.bioformats.ServiceConfiguration.Pathes;
+
 import org.glassfish.jersey.jsonp.JsonProcessingFeature;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
@@ -21,6 +23,7 @@ import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,12 +41,15 @@ public class ServiceTest extends JerseyTest
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ServiceTest.class);
     static FormDataMultiPart SWC_MULTIPART = null;
-
+    static String SWC_CONTENT = null;
+    static String SWC_URL = null;
 
     final static String FORMATS_XML_FILE = "formats.xml";
     final static String BAD_INPUT_FORMAT_FILE = "bad-input-format-sample.swc";
     final static String GOOD_INPUT_FORMAT_FILE = "m42_40min_red.fits";
+    final static String TEST_INPUT_FILE = "2lbrianlaiphot_BMP.bmp";
     final static String GOOD_OUTPUT_FILE = "m42_40min_red.png";
+
     static String FORMATS_XML = null;
 
     final static MediaType PNG_MEDIA_TYPE = new MediaType("image", "png");
@@ -62,9 +68,22 @@ public class ServiceTest extends JerseyTest
 
     @BeforeClass
     public static void initilizeResources() {
-
+    	  URI uri = null;
+    	  FileDataBodyPart filePart = null;
         try {
             FORMATS_XML = RestUtils.getResourceAsString(FORMATS_XML_FILE);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+      
+        try {
+            SWC_CONTENT = RestUtils.getResourceAsString(GOOD_OUTPUT_FILE);
+            uri = RestUtils.getResourceAsURL(GOOD_OUTPUT_FILE).toURI();
+            SWC_URL = uri.toURL().toString();
+            filePart = new FileDataBodyPart("file1", new File(uri));
+            SWC_MULTIPART = new FormDataMultiPart();
+            SWC_MULTIPART.bodyPart(filePart);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -73,7 +92,14 @@ public class ServiceTest extends JerseyTest
 
     @Test
     public void testViewFromFile() throws Exception {
-
+    	  
+    	
+    	   Response response = target(Pathes.PATH_CONVERT)
+                   .register(MultiPartFeature.class)
+                   .request(MediaType.MULTIPART_FORM_DATA_TYPE, MediaType.TEXT_HTML_TYPE)
+                   .post(Entity.entity(SWC_MULTIPART, SWC_MULTIPART.getMediaType()));
+  
+           LOGGER.info(response.readEntity(String.class));    		   
 
 
     }
@@ -151,6 +177,20 @@ public class ServiceTest extends JerseyTest
         FormDataMultiPart multipart = new FormDataMultiPart();
         multipart.bodyPart(filePart);
         return multipart;
+    }
+    
+    private void testFile(FormDataMultiPart multipart, String path, MediaType responseMediaType) {
+
+
+        Response response = target(path)
+                .register(MultiPartFeature.class)
+                .request(MediaType.MULTIPART_FORM_DATA_TYPE)
+                .accept(responseMediaType)
+                .post(Entity.entity(multipart, multipart.getMediaType()));
+
+        assertEquals(200, response.getStatus());
+        assertThat(response.readEntity(String.class), not(isEmptyOrNullString()));
+
     }
 
 
