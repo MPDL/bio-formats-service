@@ -13,7 +13,6 @@
         Select a file : <input type="file" name="file1" size="50" />
     </p>
 
-    <input type="hidden" name="portable" value="false"/>
 
     <input type="submit" value="View" />
     <input type="reset" value="Reset">
@@ -22,14 +21,12 @@
 
 <h1>or put url to file here:</h1>
 
-<form action="/bio-formats/api/view" method="get" onsubmit="return checkUrl(this);">
+<form action="/bio-formats/api/convert" method="get" onsubmit="return checkUrl(this);">
 
     <p>
         <input name="url" id="url" type="text" size="40" />
     </p>
 
-    <input type="hidden" name="portable" value="false"/>
-   
 
     <input type="submit" value="View" />
     <input type="reset" value="Reset">

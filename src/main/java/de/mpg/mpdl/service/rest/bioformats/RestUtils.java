@@ -3,10 +3,13 @@ package de.mpg.mpdl.service.rest.bioformats;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.URL;
+import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,12 +22,17 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.UriBuilder;
 import javax.xml.bind.DatatypeConverter;
 
 import loci.formats.FormatException;
 import loci.formats.IFormatWriter;
 import loci.formats.ImageWriter;
 import loci.formats.in.ImaconReader;
+
+
+
+
 
 
 import org.apache.commons.fileupload.FileItem;
@@ -76,7 +84,12 @@ public class RestUtils {
     }
     
     public static Response generateViewFromFiles(HttpServletRequest request)throws Exception{
-    	return buildHtmlResponse(convertFile(request));
+    	return convertFile(request);
+    }
+    
+    public static Response generateViewFromUrl(String url) throws Exception{
+    	URLConnection bioFormatsSourceConnection = UriBuilder.fromPath(url).build().toURL().openConnection();
+    	return generateConverterImage(bioFormatsSourceConnection.getInputStream());
     }
     
 
@@ -146,7 +159,32 @@ public class RestUtils {
 	 args[0] = tempInputFile.getAbsolutePath();
 	 
 	 args[1] = args[0].substring(0,args[0].length()-4) +".png";
-	 System.out.println(args[1]);
+
+	 converter = new ImageConverter();
+	 if(converter.testConvert(new ImageWriter(), args)){
+		 File outputFile = new File(args[1]);
+		 return buildHtmlResponse(generateResponseHtml(outputFile));
+	 }return buildHtmlResponse("Error", Status.UNSUPPORTED_MEDIA_TYPE);
+	 
+ }
+ 
+ public static Response generateConverterImage(InputStream stream) throws Exception{
+	 
+	 File tempInputFile = File.createTempFile("input", null);
+	 OutputStream outputStream = new FileOutputStream(tempInputFile);
+	 int read = 0;
+	 byte[] bytes = new byte[1024];
+	 while((read = stream.read(bytes)) != -1){
+		 outputStream.write(bytes, 0, read);
+	 }
+	 stream.close();
+	 outputStream.close();
+	 
+	 String[] args = new String[2];
+	 args[0] = tempInputFile.getAbsolutePath();
+	 
+	 args[1] = args[0].substring(0,args[0].length()-4) +".png";
+
 	 converter = new ImageConverter();
 	 if(converter.testConvert(new ImageWriter(), args)){
 		 File outputFile = new File(args[1]);
@@ -171,19 +209,18 @@ public class RestUtils {
     
  public static String generateResponseHtml(byte [] png) throws Exception{
 	 	String png_base64Code = encodeToString(png);
-	 	System.out.println(png_base64Code);
+
     	String chunk = getResourceAsString(BIO_FORMATS_VIEW_HTML_TEMPLATE_FILE_NAME);
     	return chunk.replace("%PNG_PLACEHOLDER%", png_base64Code);
     }
  
  public static String generateResponseHtml(File png) throws Exception{
 	 	String png_base64Code = encodeFileToString(png);
-	 	System.out.println(png_base64Code);
+	 
  	String chunk = getResourceAsString(BIO_FORMATS_VIEW_HTML_TEMPLATE_FILE_NAME);
  	return chunk.replace("%PNG_PLACEHOLDER%", png_base64Code);
  }
  
-
     
  public static String encodeFileToString(File png) throws Exception{
 	String base64Code = null;
@@ -213,9 +250,6 @@ public class RestUtils {
 		return buildHtmlResponse(str, Status.OK);
 	}
     
-    public static Response buildHtmlResponse(Response res) {
-		return buildHtmlResponse(res);
-	}
 
 	public static Response buildHtmlResponse(String str, Status status) {
 		return Response.status(status).entity(str).type(MediaType.TEXT_HTML)
