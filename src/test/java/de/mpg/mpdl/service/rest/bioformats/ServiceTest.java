@@ -78,7 +78,7 @@ public class ServiceTest extends JerseyTest
         
       
         try {
-            SWC_CONTENT = RestUtils.getResourceAsString(GOOD_OUTPUT_FILE);
+            SWC_CONTENT = RestUtils.getResourceAsString(GOOD_INPUT_FORMAT_FILE);
             uri = RestUtils.getResourceAsURL(GOOD_OUTPUT_FILE).toURI();
             SWC_URL = uri.toURL().toString();
             filePart = new FileDataBodyPart("file1", new File(uri));

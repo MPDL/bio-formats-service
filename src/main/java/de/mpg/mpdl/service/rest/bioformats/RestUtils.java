@@ -25,7 +25,7 @@ import loci.formats.FormatException;
 import loci.formats.IFormatWriter;
 import loci.formats.ImageWriter;
 import loci.formats.in.ImaconReader;
-import loci.formats.tools.ImageConverter;
+
 
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
@@ -60,7 +60,7 @@ public class RestUtils {
 
     private static ImageConverter converter;
     
-    
+    public static File TMP_DIRECTORY = null;
     
 
 
@@ -138,17 +138,19 @@ public class RestUtils {
  
  public static Response generateConverterImage(FileItem fileItem) throws Exception{
 	 
-	 File tempInputFile = File.createTempFile("in", null);
-	 File tempOutputFile = File.createTempFile("out", ".png");
-	 tempInputFile.deleteOnExit();
-	 tempOutputFile.deleteOnExit();
+	 File tempInputFile = File.createTempFile("input", null, TMP_DIRECTORY);
+
 	 fileItem.write(tempInputFile);
+	 
 	 String[] args = new String[2];
 	 args[0] = tempInputFile.getAbsolutePath();
-	 args[1] = tempOutputFile.getAbsolutePath();
 	 
+	 args[1] = args[0].substring(0,args[0].length()-4) +".png";
+	 System.out.println(args[1]);
+	 converter = new ImageConverter();
 	 if(converter.testConvert(new ImageWriter(), args)){
-		 return buildHtmlResponse(generateResponseHtml(tempOutputFile));
+		 File outputFile = new File(args[1]);
+		 return buildHtmlResponse(generateResponseHtml(outputFile));
 	 }return buildHtmlResponse("Error", Status.UNSUPPORTED_MEDIA_TYPE);
 	 
  }
@@ -160,7 +162,7 @@ public class RestUtils {
 	 String[] args = new String[2];
 	 args[0] = file.getAbsolutePath();
 	 args[1] = tempOutputFile.getAbsolutePath();
-	 
+	 converter = new ImageConverter();
 	 if(converter.testConvert(new ImageWriter(), args)){
 		 return buildHtmlResponse(generateResponseHtml(tempOutputFile));
 	 }return buildHtmlResponse("Error", Status.UNSUPPORTED_MEDIA_TYPE);
@@ -241,6 +243,7 @@ public class RestUtils {
             ServletContext servletContext = request.getServletContext();
             File repository = (File) servletContext
                     .getAttribute(JAVAX_SERVLET_CONTEXT_TEMPDIR);
+            TMP_DIRECTORY = repository;
             DiskFileItemFactory factory = new DiskFileItemFactory();
             factory.setRepository(repository);
             ServletFileUpload fileUpload = new ServletFileUpload(factory);
