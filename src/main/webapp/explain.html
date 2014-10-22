@@ -12,71 +12,31 @@
     <p>
         Select a file : <input type="file" name="file1" size="50" />
     </p>
-    <p>
-		(Only for Analyze) Number of bins: <input type="text" name="numberOfBins" value="10" size="5">
-	</p>
-	 <p>
-		(Only for Analyze) Number of bins <input type="radio" name="typeOfBins" value="number" checked="checked"> or width of bins <input type="radio" name="typeOfBins" value="width">
-	</p>
+
     <input type="hidden" name="portable" value="false"/>
 
-    <input type="submit" value="View in 3D" />
-    <input type="submit" value="View in 3D - portable" onclick="setPortable(this.form);"/>
-    <input type="submit" value="Generate Thumbnail" onclick="this.form.action='/swc/api/thumb';"/>
-    <input type="submit" value="Analyze" onclick="this.form.action='/swc/api/analyze';"/>
+    <input type="submit" value="View" />
     <input type="reset" value="Reset">
 </form>
 
 
-<h1>or put .swc here:</h1>
+<h1>or put url to file here:</h1>
 
-<form action="/swc/api/view" method="post" onsubmit="return checkTextarea(this);">
-
-    <p>
-        <textarea name="swc" cols="40" rows="10" maxlength="10240000"></textarea>
-    </p>
- 	<p>
-		(Only for Analyze) Number of bins: <input type="text" name="numberOfBins" value="10" size="5">
-	</p>
-	<p>
-		(Only for Analyze) Number of bins <input type="radio" name="typeOfBins" value="number" checked="checked"> or width of bins <input type="radio" name="typeOfBins" value="width">
-	</p>
-	
-    <input type="hidden" name="portable" value="false"/>
-
-    <input type="submit" value="View in 3D" />
-    <input type="submit" value="View in 3D - portable" onclick="setPortable(this.form);"/>
-    <input type="submit" value="Generate Thumbnail" onclick="this.form.action='/swc/api/thumb';"/>
-     <input type="submit" value="Analyze" onclick="this.form.action='/swc/api/analyze';"/>
-    <input type="reset" value="Reset">
-</form>
-
-<h1>or put url to .swc here:</h1>
-
-<form action="/swc/api/view" method="get" onsubmit="return checkUrl(this);">
+<form action="/bio-formats/api/view" method="get" onsubmit="return checkUrl(this);">
 
     <p>
         <input name="url" id="url" type="text" size="40" />
     </p>
 
     <input type="hidden" name="portable" value="false"/>
-    
-    <p>
-		(Only for Analyze) Number of bins: <input type="text" name="numberOfBins" value="10" size="5">
-	</p>
-	<p>
-		(Only for Analyze) Number of bins <input type="radio" name="typeOfBins" value="number" checked="checked"> or width of bins <input type="radio" name="typeOfBins" value="width">
-	</p>
+   
 
-    <input type="submit" value="View in 3D" />
-    <input type="submit" value="View in 3D - portable" onclick="setPortable(this.form);"/>
-    <input type="submit" value="Generate Thumbnail" onclick="this.form.action='/swc/api/thumb';"/>
-     <input type="submit" value="Analyze" onclick="this.form.action='/swc/api/analyze';"/>
+    <input type="submit" value="View" />
     <input type="reset" value="Reset">
 </form>
 
 <p>
-    See <a href="https://github.com/MPDL/swc-service/blob/master/README.md#usage"> the documentation </a> for usage details.
+    See <a href="https://github.com/MPDL/bio-formats-service/blob/master/README.md#usage"> the documentation </a> for usage details.
 </p>
 
 <script type="text/javascript">
@@ -91,17 +51,7 @@
         if (form.elements.file1.value) {
             return true;
         } else {
-            alert("Please choose .swc file!");
-            return false;
-        }
-    }
-
-    function checkTextarea(form) {
-        var text = form.elements.swc;
-        if (text.value && text.value != '' ) {
-            return true;
-        } else {
-            alert("Please put .swc text!");
+            alert("Please choose image file!");
             return false;
         }
     }
@@ -111,7 +61,7 @@
         if (url.value && url.value.trim() != '' ) {
             return true;
         } else {
-            alert("Please input URL to .swc!");
+            alert("Please input URL to file!");
             return false;
         }
     }
