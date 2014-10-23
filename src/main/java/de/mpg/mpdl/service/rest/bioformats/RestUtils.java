@@ -89,6 +89,7 @@ public class RestUtils {
         List<FileItem> fileItems = uploadFiles(request);
         FileItem fileItem = getFirstFileItem(fileItems);
 
+
         return Response
                 .status(Status.OK)
                 .entity(getResourceAsInputStream("m42_40min_red.png"))
