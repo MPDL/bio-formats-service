@@ -59,6 +59,7 @@ public class RestApi {
 	@Produces({"image/png", MediaType.TEXT_HTML})
 	public Response getViewFromUrl(@QueryParam("url") String url)
 			throws Exception {
+    	System.out.println("url:"+ url);
         return RestUtils.generateViewFromUrl(url);
 
 	}

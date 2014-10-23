@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
@@ -29,6 +30,7 @@ import loci.formats.FormatException;
 import loci.formats.IFormatWriter;
 import loci.formats.ImageWriter;
 import loci.formats.in.ImaconReader;
+
 
 
 
@@ -88,7 +90,7 @@ public class RestUtils {
     }
     
     public static Response generateViewFromUrl(String url) throws Exception{
-    	URLConnection bioFormatsSourceConnection = UriBuilder.fromPath(url).build().toURL().openConnection();
+    	URLConnection bioFormatsSourceConnection =  URI.create(url).toURL().openConnection();
     	return generateConverterImage(bioFormatsSourceConnection.getInputStream());
     }
     

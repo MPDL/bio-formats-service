@@ -100,7 +100,8 @@ public final class ImageConverter {
 
   private String in = null, out = null;
   private String map = null;
-  private String compression = null;
+  //JPEG,JPEG-2000,JPEG-2000 Lossy,LZW,Uncompressed,zlib
+  private String compression = "zlib";
   private boolean stitch = false, separate = false, merge = false, fill = false;
   private boolean bigtiff = false, group = true;
   private boolean printVersion = false;
@@ -121,7 +122,7 @@ public final class ImageConverter {
   /** A utility method for converting a file from the command line. */
   public boolean testConvert(IFormatWriter writer, String[] args)
     throws FormatException, IOException
-  {
+  { 
     DebugTools.enableLogging("INFO");
     if (args != null) {
       for (int i=0; i<args.length; i++) {
@@ -191,7 +192,6 @@ public final class ImageConverter {
         }
       }
     }
-
     if (printVersion) {
       LOGGER.info("Version: {}", FormatTools.VERSION);
       LOGGER.info("VCS revision: {}", FormatTools.VCS_REVISION);
