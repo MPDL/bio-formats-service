@@ -1,6 +1,7 @@
 package de.mpg.mpdl.service.rest.bioformats;
 
 import de.mpg.mpdl.service.rest.bioformats.ServiceConfiguration.Pathes;
+
 import org.apache.commons.fileupload.FileUploadException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,6 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
+
 import java.io.IOException;
 
 import javax.ws.rs.core.MediaType;
@@ -47,7 +49,19 @@ public class RestApi {
 	@Produces({"image/png", MediaType.TEXT_HTML})
 	public Response convertFile(@Context HttpServletRequest request
 	) throws Exception {
-        return RestUtils.convertFile(request);
+//        return RestUtils.convertFile(request);
+    	return RestUtils.generateViewFromFiles(request);
+	}
+    
+    @GET
+	@Path(Pathes.PATH_CONVERT)
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@Produces({"image/png", MediaType.TEXT_HTML})
+	public Response getViewFromUrl(@QueryParam("url") String url)
+			throws Exception {
+    	System.out.println("url:"+ url);
+        return RestUtils.generateViewFromUrl(url);
+
 	}
 
 	/*@POST
