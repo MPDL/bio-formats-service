@@ -29,7 +29,10 @@ import javax.xml.bind.DatatypeConverter;
 import loci.formats.FormatException;
 import loci.formats.IFormatWriter;
 import loci.formats.ImageWriter;
+import loci.formats.UnknownFormatException;
 import loci.formats.in.ImaconReader;
+
+
 
 
 
@@ -42,6 +45,7 @@ import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.glassfish.jersey.internal.util.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -141,7 +145,9 @@ public class RestUtils {
  
  public static Response generateConverterImage(FileItem fileItem) throws Exception{
 	 
-	 File tempInputFile = File.createTempFile("input", null, TMP_DIRECTORY);
+	 String fileName = fileItem.getName();
+	 String ext = "."+FilenameUtils.getExtension(fileName);
+	 File tempInputFile = File.createTempFile("input", ext, TMP_DIRECTORY);
 
 	 fileItem.write(tempInputFile);
 	 
@@ -151,10 +157,15 @@ public class RestUtils {
 	 args[1] = args[0].substring(0,args[0].length()-4) +".png";
 
 	 converter = new ImageConverter();
-	 if(converter.testConvert(new ImageWriter(), args)){
-		 File outputFile = new File(args[1]);
-		 return buildHtmlResponse(generateResponseHtml(outputFile));
-	 }return buildHtmlResponse("Error", Status.UNSUPPORTED_MEDIA_TYPE);
+	 try{
+		 if(converter.testConvert(new ImageWriter(), args)){
+			 File outputFile = new File(args[1]);
+			 return buildHtmlResponse(generateResponseHtml(outputFile));
+		 }return buildHtmlResponse("Error", Status.UNSUPPORTED_MEDIA_TYPE);
+		  
+	 }catch(UnknownFormatException e){
+		 return buildHtmlResponse("Error", Status.UNSUPPORTED_MEDIA_TYPE);
+	 }
 	 
  }
  
