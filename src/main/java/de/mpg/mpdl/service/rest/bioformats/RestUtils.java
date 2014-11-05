@@ -154,7 +154,7 @@ public class RestUtils {
 	 String[] args = new String[2];
 	 args[0] = tempInputFile.getAbsolutePath();
 	 
-	 args[1] = args[0].substring(0,args[0].length()-4) +".png";
+	 args[1] = args[0].substring(0,args[0].length()-4) +"out.png";
 
 	 converter = new ImageConverter();
 	 try{

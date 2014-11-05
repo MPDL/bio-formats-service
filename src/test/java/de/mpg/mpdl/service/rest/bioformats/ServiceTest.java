@@ -1,10 +1,6 @@
 package de.mpg.mpdl.service.rest.bioformats;
 
-import com.google.common.io.ByteStreams;
-import com.google.common.io.Files;
-
 import de.mpg.mpdl.service.rest.bioformats.ServiceConfiguration.Pathes;
-
 import org.glassfish.jersey.jsonp.JsonProcessingFeature;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
@@ -23,17 +19,15 @@ import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.isEmptyOrNullString;
-import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 
 public class ServiceTest extends JerseyTest
@@ -49,6 +43,7 @@ public class ServiceTest extends JerseyTest
     final static String GOOD_INPUT_FORMAT_FILE = "m42_40min_red.fits";
     final static String TEST_INPUT_FILE = "2lbrianlaiphot_BMP.bmp";
     final static String GOOD_OUTPUT_FILE = "m42_40min_red.png";
+    final static int EXPECTED_RESPONSE_SIZE = 9931709;
 
     static String FORMATS_XML = null;
 
@@ -98,9 +93,7 @@ public class ServiceTest extends JerseyTest
                    .register(MultiPartFeature.class)
                    .request(MediaType.MULTIPART_FORM_DATA_TYPE, MediaType.TEXT_HTML_TYPE)
                    .post(Entity.entity(SWC_MULTIPART, SWC_MULTIPART.getMediaType()));
-  
-           LOGGER.info(response.readEntity(String.class));    		   
-
+            assertThat(response.readEntity(String.class), not(isEmptyOrNullString()));
 
     }
 
@@ -155,17 +148,8 @@ public class ServiceTest extends JerseyTest
                 .post(Entity.entity(multipart, multipart.getMediaType()));
 
         assertEquals(Status.OK.getStatusCode(), response.getStatus());
-        InputStream pngInputStream = response.readEntity(InputStream.class);
-
-        byte[] responseBytes = ByteStreams.toByteArray(pngInputStream);
-        pngInputStream.close();
-        byte[] testBytes = Files.toByteArray(
-                new File(
-                    RestUtils.getResourceAsURL(GOOD_OUTPUT_FILE).getFile()
-                )
-        );
-
-//        assertArrayEquals("Wrong PNG file", responseBytes, testBytes);
+        String responseStr = response.readEntity(String.class);
+        assertThat("Wrong size of generated png file:", responseStr.length(), equalTo(EXPECTED_RESPONSE_SIZE));
 
 
     }
